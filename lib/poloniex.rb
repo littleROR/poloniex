@@ -2,6 +2,10 @@ require "poloniex/version"
 require 'rest-client'
 require 'openssl'
 require 'addressable/uri'
+require 'poloniex/string'
+require 'poloniex/history'
+require 'json'
+require 'date'
 
 module Poloniex
 
@@ -23,8 +27,19 @@ module Poloniex
     end
   end
 
-  def self.get_all_daily_exchange_rates( currency_pair )
-    res = get 'returnChartData', currencyPair: currency_pair, period: 86400,  start: 0, :end => Time.now.to_i
+  def self.all_daily_exchange_rates( currency_pair )
+    response = get 'returnChartData', currencyPair: currency_pair, period: 86400,  start: 0, end: Time.now.to_i
+    JSON.parse(response.body, object_class: History)
+  end
+
+  def self.all_bihourly_exchange_rates(currency_pair)
+    response = get 'returnChartData', currencyPair: currency_pair, period: 7200,  start: 0, end: Time.now.to_i
+    JSON.parse(response.body, object_class: History)
+  end
+
+  def self.exchange_rates(currency_pair, period, start_period=0, end_period=Time.now.to_i)
+    response = get 'returnChartData', currencyPair: currency_pair, period: period,  start: start_period, :end => end_period
+    JSON.parse(response.body, object_class: History)
   end
 
   def self.ticker
@@ -48,7 +63,7 @@ module Poloniex
   end
 
   def self.lending_history( start = 0, end_time = Time.now.to_i )
-    post 'returnLendingHistory', start: start, :end => end_time
+    post 'returnLendingHistory', start: start, end: end_time
   end
 
   def self.currencies
