@@ -4,6 +4,8 @@ require 'openssl'
 require 'addressable/uri'
 require 'poloniex/string'
 require 'poloniex/history'
+require 'poloniex/ticker'
+require 'poloniex/volume_entry'
 require 'json'
 require 'date'
 
@@ -43,11 +45,18 @@ module Poloniex
   end
 
   def self.ticker
-    get 'returnTicker'
+    response = get 'returnTicker'
+
+    JSON.parse(response.body).map do |market_name, attributes|
+      Ticker.new(market_name, attributes)
+    end
   end
 
   def self.volume
-    get 'return24hVolume'
+    response = get 'return24hVolume'
+    JSON.parse(response.body).map do |market_name, attributes|
+      VolumeEntry.new(market_name, attributes)
+    end
   end
 
   def self.order_book( currency_pair )
